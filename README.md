@@ -106,11 +106,4 @@ Al ingresar, el usuario verá una pantalla de bienvenida con una descripción co
   * Títulos: *"Bebas Neue", sans-serif*
   * Texto general: *"Inter", sans-serif*
 
-* **Formato y layout:**
-
-  * Bienvenida centrada, con call-to-action
-  * Menú sticky con iconos
-  * Cuadrícula de portadas adaptativa (cards responsivas)
-  * Animaciones suaves al pasar el cursor
-
 ---
