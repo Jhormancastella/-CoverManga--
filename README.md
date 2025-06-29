@@ -2,24 +2,25 @@
 
 ## Portadas + Cubrepolvos y Separadores para Fans del Manga.
 
-**CoverManga+** es un repositorio el cual no almacena las imagenes 
+**-CoverManga-** es un repositorio el cual no almacena las imagenes 
 **portadas, cubrepolvos y separadores imprimibles** en alta calidad para preservar, restaurar o personalizar tus mangas, manhwas y novelas ligeras. Inspirado en [Mokuton Covers](https://mokuton.com/covers/index.php), pero con mejor organización, visualización interactiva y diseño adaptado a todos los dispositivos.
 
 ---
 
-## ✨ ¿Por qué CoverManga+ ?
+## ✨ ¿Por qué -CoverManga- ?
 - el nombre directo lo que se quiere logar 
 es que los fans del manga tenga en su mejor estado sus mangas y demas colecciones.
 
 ---
 ## Característica y Beneficio.
+
 | Característica                  | Beneficio                                             |
-| ------------------------------- | ----------------------------------------------------- |
+| --------------------------------|------------------------------------------------------ |
 | 🖼️ **Portadas HD**             | Restaura ediciones dañadas o personaliza tu colección |
 | 🛡️ **Cubrepolvos imprimibles** | Protege tomos del polvo y desgaste diario             |
-| 📏 **Separadores temáticos**    | Ordena tu colección con estilo y coherencia           |
-| ↺ **Multi-formato**             | Compatible con manga, manhwa y novelas ligeras        |
-| 🎨 **Recursos editables**       | Personaliza a tu gusto con PSD y AI                   |
+| 📏 **Separadores cada manga**  | Ordena tu colección con estilo y coherencia           |
+| ↺ **Multi-formato**            | Compatible con manga, manhwa y novelas ligeras        |
+| 🎨 **Recursos editables**      | Personaliza a tu gusto con PSD y AI                   |
 
 ---
 
