@@ -44,7 +44,7 @@ CoverManga+/
 │   ├── one-piece/
 │   │   ├── vol-1.jpg
 │   │   ├── vol-1.psd
-│   │   └── metadata.json
+│   │   └── ComoUsar.jpg
 │   └── attack-on-titan/
 ├── manhwa/              # Recursos para manhwa coreano
 ├── light-novels/        # Cubiertas para novelas ligeras
