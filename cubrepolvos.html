@@ -98,9 +98,12 @@
             }
         }
 
-        // Cargar galería de cubre polvos
+        // Cargar galería de cubre polvos - VERSIÓN OPTIMIZADA CON ÍNDICE
         async function loadCubrePolvosGallery() {
             try {
+                console.log("🚀 Cargando cubre polvos con índice...");
+                
+                // CONSULTA ÓPTIMA CON ÍNDICE
                 const snapshot = await db.collection('imagenes')
                     .where('category', '==', 'cubrepolvos')
                     .orderBy('timestamp', 'desc')
@@ -108,8 +111,18 @@
 
                 const gallery = document.getElementById('cubrepolvos-gallery');
                 
+                console.log("✅ Cubre polvos cargados:", snapshot.size);
+                
                 if (snapshot.empty) {
-                    gallery.innerHTML = '<div class="loading">No hay cubre polvos disponibles</div>';
+                    gallery.innerHTML = `
+                        <div class="no-images">
+                            <h3>🛡️ No hay cubre polvos aún</h3>
+                            <p>Protege tus mangas subiendo el primer cubre polvo</p>
+                            <button class="admin-btn" onclick="openAdminModal()" style="margin-top: 10px;">
+                                📤 Subir Cubre Polvo
+                            </button>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -119,29 +132,157 @@
                     const galleryItem = document.createElement('div');
                     galleryItem.className = 'gallery-item';
                     galleryItem.innerHTML = `
-                        <img src="${image.url}" alt="${image.title}" 
-                             onerror="this.src='https://via.placeholder.com/300x200?text=Imagen+No+Disponible'">
-                        <div class="info">
-                            <h3>${image.title}</h3>
+                        <div class="image-container">
+                            <img src="${image.url}" alt="${image.title}" 
+                                 loading="lazy"
+                                 onerror="this.src='https://via.placeholder.com/300x400/ecf0f1/7f8c8d?text=Cubre+Polvo'">
+                            <div class="image-overlay">
+                                <h3>${image.title}</h3>
+                                ${image.series ? `<p>📚 ${image.series}</p>` : ''}
+                                ${image.volume ? `<p>📖 Vol. ${image.volume}</p>` : ''}
+                                <div class="image-actions">
+                                    <button class="download-btn" onclick="downloadImage('${image.url}', '${image.title}')">
+                                        ⬇️ Descargar
+                                    </button>
+                                    <button class="view-btn" onclick="viewImage('${image.url}')">
+                                        👁️ Ver
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     `;
                     gallery.appendChild(galleryItem);
                 });
 
             } catch (error) {
-                console.error('Error cargando cubre polvos:', error);
-                document.getElementById('cubrepolvos-gallery').innerHTML = '<div class="loading">Error cargando cubre polvos</div>';
+                console.error('❌ Error cargando cubre polvos:', error);
+                
+                // Manejo de errores específicos
+                let errorMessage = 'Error cargando cubre polvos';
+                let showRetry = true;
+                
+                if (error.code === 'failed-precondition') {
+                    errorMessage = 'El índice aún se está creando. Intenta en 2-3 minutos.';
+                } else if (error.code === 'permission-denied') {
+                    errorMessage = 'Error de permisos. Contacta al administrador.';
+                    showRetry = false;
+                } else if (error.code === 'unavailable') {
+                    errorMessage = 'Error de conexión. Verifica tu internet.';
+                } else {
+                    errorMessage += ': ' + error.message;
+                }
+                
+                document.getElementById('cubrepolvos-gallery').innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Error</h3>
+                        <p>${errorMessage}</p>
+                        ${showRetry ? `<button onclick="loadCubrePolvosGallery()" style="margin-top: 10px;">🔄 Reintentar</button>` : ''}
+                    </div>
+                `;
             }
         }
 
-        // Inicializar
+        // Función para descargar imágenes
+        function downloadImage(imageUrl, title) {
+            try {
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = `${title.replace(/[^a-z0-9]/gi, '_')}.jpg`;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Mostrar mensaje de éxito
+                showNotification('✅ Descarga iniciada', 'success');
+                
+            } catch (error) {
+                console.error('Error descargando imagen:', error);
+                showNotification('❌ Error al descargar la imagen', 'error');
+            }
+        }
+
+        // Función para ver imagen en grande
+        function viewImage(imageUrl) {
+            window.open(imageUrl, '_blank', 'noopener,noreferrer');
+        }
+
+        // Mostrar notificación
+        function showNotification(message, type = 'info') {
+            const tempMsg = document.createElement('div');
+            const bgColor = type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db';
+            
+            tempMsg.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+            `;
+            tempMsg.textContent = message;
+            document.body.appendChild(tempMsg);
+            
+            setTimeout(() => {
+                tempMsg.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(tempMsg)) {
+                        document.body.removeChild(tempMsg);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Verificar conexión a Firebase
+        function checkFirebaseConnection() {
+            if (!db) {
+                console.error('❌ Firebase no está inicializado');
+                return false;
+            }
+            return true;
+        }
+
+        // Inicializar - CÓDIGO OPTIMIZADO
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("🚀 Inicializando página de cubre polvos...");
+            
+            if (!checkFirebaseConnection()) {
+                document.getElementById('cubrepolvos-gallery').innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Error de conexión</h3>
+                        <p>No se pudo conectar a la base de datos</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Cargar galería inicial
             loadCubrePolvosGallery();
             
             // Escuchar cambios en tiempo real
-            db.collection('imagenes').where('category', '==', 'cubrepolvos').onSnapshot(() => {
-                loadCubrePolvosGallery();
-            });
+            try {
+                const unsubscribe = db.collection('imagenes')
+                    .where('category', '==', 'cubrepolvos')
+                    .orderBy('timestamp', 'desc')
+                    .onSnapshot(() => {
+                        console.log("🔄 Actualización en tiempo real detectada");
+                        loadCubrePolvosGallery();
+                    }, error => {
+                        console.warn('⚠️ Error en listener tiempo real:', error);
+                    });
+                
+                // Limpiar listener cuando la página se cierre
+                window.addEventListener('beforeunload', () => {
+                    unsubscribe();
+                });
+                
+            } catch (error) {
+                console.warn('⚠️ No se pudo establecer listener tiempo real:', error);
+            }
         });
 
         // Cerrar modal al hacer click fuera
@@ -151,6 +292,148 @@
                 closeAdminModal();
             }
         });
+
+        // Cerrar modal con Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAdminModal();
+            }
+        });
     </script>
+
+    <style>
+        .no-images, .error-message {
+            text-align: center;
+            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            margin: 20px 0;
+            grid-column: 1 / -1;
+        }
+
+        .image-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            color: white;
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover .image-overlay {
+            transform: translateY(0);
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .download-btn, .view-btn {
+            flex: 1;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .view-btn {
+            background: #8e44ad;
+        }
+
+        .download-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .view-btn:hover {
+            background: #9b59b6;
+            transform: translateY(-2px);
+        }
+
+        /* Cubre polvos tienen proporción similar a portadas */
+        .gallery-item img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Animaciones para notificaciones */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Mejoras responsive para cubre polvos */
+        @media (max-width: 768px) {
+            .image-overlay {
+                transform: translateY(0);
+                position: relative;
+                background: var(--card-bg);
+                color: var(--text-color);
+                padding: 15px;
+            }
+            
+            .image-actions {
+                flex-direction: column;
+            }
+            
+            .gallery-item:hover .image-container {
+                transform: none;
+            }
+            
+            .gallery-item img {
+                height: 250px; /* Ajuste para móviles */
+            }
+        }
+
+        /* Estilo específico para cubre polvos */
+        .gallery-item.cubrepolvo-item {
+            aspect-ratio: 3/4; /* Proporción común para protectores */
+        }
+    </style>
 </body>
 </html>
