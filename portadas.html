@@ -98,11 +98,12 @@
             }
         }
 
-        // Cargar galería de portadas - CÓDIGO CORREGIDO
+        // Cargar galería de portadas - VERSIÓN OPTIMIZADA CON ÍNDICE
         async function loadPortadasGallery() {
             try {
-                console.log("🔍 Iniciando carga de portadas...");
+                console.log("🚀 Cargando portadas con índice...");
                 
+                // CONSULTA ÓPTIMA CON ÍNDICE
                 const snapshot = await db.collection('imagenes')
                     .where('category', '==', 'portadas')
                     .orderBy('timestamp', 'desc')
@@ -110,15 +111,15 @@
 
                 const gallery = document.getElementById('portadas-gallery');
                 
-                console.log("📊 Resultados encontrados:", snapshot.size);
+                console.log("✅ Portadas cargadas:", snapshot.size);
                 
                 if (snapshot.empty) {
                     gallery.innerHTML = `
                         <div class="no-images">
-                            <h3>📭 No hay portadas disponibles</h3>
-                            <p>Sube la primera portada desde el panel de administración</p>
+                            <h3>🎨 No hay portadas aún</h3>
+                            <p>Sé el primero en subir una portada</p>
                             <button class="admin-btn" onclick="openAdminModal()" style="margin-top: 10px;">
-                                Ir al Admin
+                                📤 Subir Portada
                             </button>
                         </div>
                     `;
@@ -128,21 +129,24 @@
                 gallery.innerHTML = '';
                 snapshot.forEach(doc => {
                     const image = doc.data();
-                    console.log("🖼️ Cargando imagen:", image.title, image.url);
-                    
                     const galleryItem = document.createElement('div');
                     galleryItem.className = 'gallery-item';
                     galleryItem.innerHTML = `
                         <div class="image-container">
                             <img src="${image.url}" alt="${image.title}" 
-                                 onerror="this.src='https://via.placeholder.com/300x400/ecf0f1/7f8c8d?text=Error+al+cargar'"
-                                 onload="console.log('✅ Imagen cargada:', '${image.title}')">
+                                 loading="lazy"
+                                 onerror="this.src='https://via.placeholder.com/300x400/ecf0f1/7f8c8d?text=Imagen+No+Disponible'">
                             <div class="image-overlay">
                                 <h3>${image.title}</h3>
-                                ${image.series ? `<p><strong>Serie:</strong> ${image.series}</p>` : ''}
-                                ${image.volume ? `<p><strong>Volumen:</strong> ${image.volume}</p>` : ''}
-                                <div class="download-btn" onclick="downloadImage('${image.url}', '${image.title}')">
-                                    ⬇️ Descargar
+                                ${image.series ? `<p>📚 ${image.series}</p>` : ''}
+                                ${image.volume ? `<p>📖 Vol. ${image.volume}</p>` : ''}
+                                <div class="image-actions">
+                                    <button class="download-btn" onclick="downloadImage('${image.url}', '${image.title}')">
+                                        ⬇️ Descargar
+                                    </button>
+                                    <button class="view-btn" onclick="viewImage('${image.url}')">
+                                        👁️ Ver
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -153,23 +157,26 @@
             } catch (error) {
                 console.error('❌ Error cargando portadas:', error);
                 
-                // Mostrar información detallada del error
+                // Manejo de errores específicos
                 let errorMessage = 'Error cargando portadas';
+                let showRetry = true;
+                
                 if (error.code === 'failed-precondition') {
-                    errorMessage += '<br>🔧 Necesitas crear un índice en Firebase. Revisa la consola para el enlace.';
+                    errorMessage = 'El índice aún se está creando. Intenta en 2-3 minutos.';
                 } else if (error.code === 'permission-denied') {
-                    errorMessage += '<br>🔐 Error de permisos. Verifica las reglas de Firestore.';
+                    errorMessage = 'Error de permisos. Contacta al administrador.';
+                    showRetry = false;
+                } else if (error.code === 'unavailable') {
+                    errorMessage = 'Error de conexión. Verifica tu internet.';
                 } else {
-                    errorMessage += '<br>' + error.message;
+                    errorMessage += ': ' + error.message;
                 }
                 
                 document.getElementById('portadas-gallery').innerHTML = `
                     <div class="error-message">
                         <h3>❌ Error</h3>
                         <p>${errorMessage}</p>
-                        <button onclick="loadPortadasGallery()" style="margin-top: 10px;">
-                            🔄 Reintentar
-                        </button>
+                        ${showRetry ? `<button onclick="loadPortadasGallery()" style="margin-top: 10px;">🔄 Reintentar</button>` : ''}
                     </div>
                 `;
             }
@@ -187,25 +194,47 @@
                 document.body.removeChild(link);
                 
                 // Mostrar mensaje de éxito
-                const tempMsg = document.createElement('div');
-                tempMsg.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: #27ae60;
-                    color: white;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    z-index: 1000;
-                `;
-                tempMsg.textContent = '✅ Descarga iniciada';
-                document.body.appendChild(tempMsg);
-                setTimeout(() => document.body.removeChild(tempMsg), 3000);
+                showNotification('✅ Descarga iniciada', 'success');
                 
             } catch (error) {
                 console.error('Error descargando imagen:', error);
-                alert('❌ Error al descargar la imagen');
+                showNotification('❌ Error al descargar la imagen', 'error');
             }
+        }
+
+        // Función para ver imagen en grande
+        function viewImage(imageUrl) {
+            window.open(imageUrl, '_blank', 'noopener,noreferrer');
+        }
+
+        // Mostrar notificación
+        function showNotification(message, type = 'info') {
+            const tempMsg = document.createElement('div');
+            const bgColor = type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db';
+            
+            tempMsg.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+            `;
+            tempMsg.textContent = message;
+            document.body.appendChild(tempMsg);
+            
+            setTimeout(() => {
+                tempMsg.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(tempMsg)) {
+                        document.body.removeChild(tempMsg);
+                    }
+                }, 300);
+            }, 3000);
         }
 
         // Verificar conexión a Firebase
@@ -214,20 +243,13 @@
                 console.error('❌ Firebase no está inicializado');
                 return false;
             }
-            
-            // Test simple de conexión
-            db.collection('imagenes').limit(1).get()
-                .then(() => console.log('✅ Conexión a Firebase OK'))
-                .catch(error => console.error('❌ Error de conexión Firebase:', error));
-                
             return true;
         }
 
-        // Inicializar - CÓDIGO MEJORADO
+        // Inicializar - CÓDIGO OPTIMIZADO
         document.addEventListener('DOMContentLoaded', function() {
             console.log("🚀 Inicializando página de portadas...");
             
-            // Verificar conexión
             if (!checkFirebaseConnection()) {
                 document.getElementById('portadas-gallery').innerHTML = `
                     <div class="error-message">
@@ -238,20 +260,26 @@
                 return;
             }
             
-            // Cargar galería
+            // Cargar galería inicial
             loadPortadasGallery();
             
-            // Escuchar cambios en tiempo real (opcional, puedes comentar si da problemas)
+            // Escuchar cambios en tiempo real
             try {
-                db.collection('imagenes')
+                const unsubscribe = db.collection('imagenes')
                     .where('category', '==', 'portadas')
+                    .orderBy('timestamp', 'desc')
                     .onSnapshot(() => {
                         console.log("🔄 Actualización en tiempo real detectada");
                         loadPortadasGallery();
                     }, error => {
                         console.warn('⚠️ Error en listener tiempo real:', error);
-                        // No mostrar error al usuario, es opcional
                     });
+                
+                // Limpiar listener cuando la página se cierre
+                window.addEventListener('beforeunload', () => {
+                    unsubscribe();
+                });
+                
             } catch (error) {
                 console.warn('⚠️ No se pudo establecer listener tiempo real:', error);
             }
@@ -264,6 +292,13 @@
                 closeAdminModal();
             }
         });
+
+        // Cerrar modal con Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAdminModal();
+            }
+        });
     </script>
 
     <style>
@@ -273,12 +308,20 @@
             background: var(--card-bg);
             border-radius: 10px;
             margin: 20px 0;
+            grid-column: 1 / -1;
         }
 
         .image-container {
             position: relative;
             overflow: hidden;
-            border-radius: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
         }
 
         .image-overlay {
@@ -286,7 +329,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
             color: white;
             padding: 20px;
             transform: translateY(100%);
@@ -297,19 +340,36 @@
             transform: translateY(0);
         }
 
-        .download-btn {
+        .image-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .download-btn, .view-btn {
+            flex: 1;
             background: var(--primary-color);
             color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            display: inline-block;
-            margin-top: 10px;
-            transition: background 0.3s;
+            font-size: 0.9em;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .view-btn {
+            background: #8e44ad;
         }
 
         .download-btn:hover {
             background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .view-btn:hover {
+            background: #9b59b6;
+            transform: translateY(-2px);
         }
 
         .gallery-item img {
@@ -321,6 +381,48 @@
 
         .gallery-item:hover img {
             transform: scale(1.05);
+        }
+
+        /* Animaciones para notificaciones */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Mejoras responsive */
+        @media (max-width: 768px) {
+            .image-overlay {
+                transform: translateY(0);
+                position: relative;
+                background: var(--card-bg);
+                color: var(--text-color);
+                padding: 15px;
+            }
+            
+            .image-actions {
+                flex-direction: column;
+            }
+            
+            .gallery-item:hover .image-container {
+                transform: none;
+            }
         }
     </style>
 </body>
