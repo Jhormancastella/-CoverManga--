@@ -6,6 +6,156 @@
     <title>CoverManga - Inicio</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png" type="image/png">
+    <style>
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .slider-section {
+            margin-bottom: 50px;
+        }
+
+        .slider-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .slider {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 10px 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 auto;
+            width: 280px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .slider-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .slider-item .info {
+            padding: 15px;
+        }
+
+        .slider-item h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1em;
+            color: var(--text-color);
+        }
+
+        .slider-item p {
+            margin: 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .slider-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .slider-nav button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            font-size: 0.9em;
+        }
+
+        .slider-nav button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .no-images-slider {
+            text-align: center;
+            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            color: #666;
+        }
+
+        .category-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .category-link:hover {
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+            
+            .hero p {
+                font-size: 1em;
+            }
+            
+            .slider-item {
+                width: 250px;
+            }
+            
+            .slider-nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .slider-nav button {
+                width: 200px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -50,6 +200,7 @@
                     </div>
                     <div class="slider-nav">
                         <button onclick="scrollSlider('portadas-slider', -300)">❮ Anterior</button>
+                        <a href="portadas.html" class="category-link">Ver todas las portadas</a>
                         <button onclick="scrollSlider('portadas-slider', 300)">Siguiente ❯</button>
                     </div>
                 </div>
@@ -64,6 +215,7 @@
                     </div>
                     <div class="slider-nav">
                         <button onclick="scrollSlider('separadores-slider', -300)">❮ Anterior</button>
+                        <a href="separadores.html" class="category-link">Ver todos los separadores</a>
                         <button onclick="scrollSlider('separadores-slider', 300)">Siguiente ❯</button>
                     </div>
                 </div>
@@ -78,6 +230,7 @@
                     </div>
                     <div class="slider-nav">
                         <button onclick="scrollSlider('cubrepolvos-slider', -300)">❮ Anterior</button>
+                        <a href="cubrepolvos.html" class="category-link">Ver todos los cubre polvos</a>
                         <button onclick="scrollSlider('cubrepolvos-slider', 300)">Siguiente ❯</button>
                     </div>
                 </div>
@@ -143,64 +296,172 @@
             }
         }
 
-        // Cargar carruseles
+        // Cargar carruseles - VERSIÓN CORREGIDA
         async function loadSliders() {
             try {
-                const snapshot = await db.collection('imagenes')
-                    .where('featured', '==', true)
-                    .orderBy('timestamp', 'desc')
-                    .get();
+                console.log("🚀 Cargando carruseles...");
 
-                const imagesByCategory = {
-                    'portadas': [],
-                    'separadores': [],
-                    'cubrepolvos': []
-                };
-
-                snapshot.forEach(doc => {
-                    const image = doc.data();
-                    if (imagesByCategory[image.category]) {
-                        imagesByCategory[image.category].push(image);
-                    }
-                });
-
-                // Cargar cada carrusel
-                for (const [category, images] of Object.entries(imagesByCategory)) {
-                    const slider = document.getElementById(`${category}-slider`);
-                    slider.innerHTML = '';
-
-                    if (images.length === 0) {
-                        slider.innerHTML = '<div class="loading">No hay imágenes destacadas</div>';
-                        continue;
-                    }
-
-                    images.forEach(image => {
-                        const slide = document.createElement('div');
-                        slide.className = 'slider-item';
-                        slide.innerHTML = `
-                            <img src="${image.url}" alt="${image.title}" 
-                                 onerror="this.src='https://via.placeholder.com/300x200?text=Imagen+No+Disponible'">
-                            <div class="info">
-                                <h3>${image.title}</h3>
-                            </div>
-                        `;
-                        slider.appendChild(slide);
-                    });
-                }
+                // Cargar cada categoría por separado
+                await loadCategorySlider('portadas', 'portadas-slider');
+                await loadCategorySlider('separadores', 'separadores-slider');
+                await loadCategorySlider('cubrepolvos', 'cubrepolvos-slider');
 
             } catch (error) {
-                console.error('Error cargando carruseles:', error);
+                console.error('❌ Error cargando carruseles:', error);
             }
         }
 
-        // Inicializar
+        // Cargar carrusel por categoría
+        async function loadCategorySlider(category, sliderId) {
+            try {
+                console.log(`📂 Cargando ${category}...`);
+                
+                // Consulta optimizada con límite
+                const snapshot = await db.collection('imagenes')
+                    .where('category', '==', category)
+                    .orderBy('timestamp', 'desc')
+                    .limit(8) // Máximo 8 imágenes por carrusel
+                    .get();
+
+                const slider = document.getElementById(sliderId);
+                
+                if (snapshot.empty) {
+                    slider.innerHTML = `
+                        <div class="no-images-slider">
+                            <h3>No hay ${category} disponibles</h3>
+                            <p>Ve al panel de administración para subir el primer ${category.slice(0, -1)}</p>
+                            <button class="admin-btn" onclick="openAdminModal()" style="margin-top: 10px;">
+                                📤 Subir ${category.slice(0, -1)}
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                slider.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const image = doc.data();
+                    const slide = document.createElement('div');
+                    slide.className = 'slider-item';
+                    slide.innerHTML = `
+                        <img src="${image.url}" alt="${image.title}" 
+                             loading="lazy"
+                             onerror="this.src='https://via.placeholder.com/300x200/ecf0f1/7f8c8d?text=Imagen+No+Disponible'">
+                        <div class="info">
+                            <h3>${image.title}</h3>
+                            ${image.series ? `<p>📚 ${image.series}</p>` : ''}
+                            ${image.volume ? `<p>📖 Vol. ${image.volume}</p>` : ''}
+                        </div>
+                    `;
+                    
+                    // Hacer la imagen clickeable para ver en grande
+                    slide.addEventListener('click', () => {
+                        window.open(image.url, '_blank', 'noopener,noreferrer');
+                    });
+                    
+                    slider.appendChild(slide);
+                });
+
+                console.log(`✅ ${category} cargados:`, snapshot.size);
+
+            } catch (error) {
+                console.error(`❌ Error cargando ${category}:`, error);
+                const slider = document.getElementById(sliderId);
+                slider.innerHTML = `
+                    <div class="no-images-slider">
+                        <h3>Error cargando ${category}</h3>
+                        <p>${error.message}</p>
+                        <button onclick="loadCategorySlider('${category}', '${sliderId}')" style="margin-top: 10px;">
+                            🔄 Reintentar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Mostrar notificación
+        function showNotification(message, type = 'info') {
+            const tempMsg = document.createElement('div');
+            const bgColor = type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db';
+            
+            tempMsg.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+            `;
+            tempMsg.textContent = message;
+            document.body.appendChild(tempMsg);
+            
+            setTimeout(() => {
+                tempMsg.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(tempMsg)) {
+                        document.body.removeChild(tempMsg);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Verificar conexión a Firebase
+        function checkFirebaseConnection() {
+            if (!db) {
+                console.error('❌ Firebase no está inicializado');
+                return false;
+            }
+            return true;
+        }
+
+        // Inicializar - CÓDIGO OPTIMIZADO
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("🚀 Inicializando página de inicio...");
+            
+            if (!checkFirebaseConnection()) {
+                // Mostrar error en todos los sliders
+                ['portadas-slider', 'separadores-slider', 'cubrepolvos-slider'].forEach(sliderId => {
+                    document.getElementById(sliderId).innerHTML = `
+                        <div class="no-images-slider">
+                            <h3>❌ Error de conexión</h3>
+                            <p>No se pudo conectar a la base de datos</p>
+                        </div>
+                    `;
+                });
+                return;
+            }
+            
+            // Cargar carruseles iniciales
             loadSliders();
             
-            // Escuchar cambios en tiempo real
-            db.collection('imagenes').where('featured', '==', true).onSnapshot(() => {
-                loadSliders();
-            });
+            // Escuchar cambios en tiempo real (opcional)
+            try {
+                // Escuchar cambios en todas las categorías
+                ['portadas', 'separadores', 'cubrepolvos'].forEach(category => {
+                    const unsubscribe = db.collection('imagenes')
+                        .where('category', '==', category)
+                        .orderBy('timestamp', 'desc')
+                        .limit(8)
+                        .onSnapshot(() => {
+                            console.log(`🔄 Actualización en ${category}`);
+                            loadCategorySlider(category, `${category}-slider`);
+                        }, error => {
+                            console.warn(`⚠️ Error en listener de ${category}:`, error);
+                        });
+                    
+                    // Limpiar listener cuando la página se cierre
+                    window.addEventListener('beforeunload', () => {
+                        unsubscribe();
+                    });
+                });
+                
+            } catch (error) {
+                console.warn('⚠️ No se pudo establecer listeners tiempo real:', error);
+            }
         });
 
         // Cerrar modal al hacer click fuera
@@ -210,6 +471,40 @@
                 closeAdminModal();
             }
         });
+
+        // Cerrar modal con Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.target !== document.getElementById('adminPassword') && event.key === 'Escape') {
+                closeAdminModal();
+            }
+        });
+
+        // Animaciones CSS para notificaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
