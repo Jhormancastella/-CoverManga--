@@ -60,6 +60,7 @@
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
         }
 
         .slider-item:hover {
@@ -89,27 +90,60 @@
             color: #666;
         }
 
-        .slider-nav {
+        /* Indicadores de puntos */
+        .slider-indicators {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 8px;
             margin-top: 20px;
         }
 
-        .slider-nav button {
-            background: var(--primary-color);
-            color: white;
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
             border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
             cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            font-size: 0.9em;
+            transition: all 0.3s ease;
         }
 
-        .slider-nav button:hover {
+        .slider-dot.active {
+            background: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        .slider-dot:hover {
             background: var(--secondary-color);
-            transform: translateY(-2px);
+        }
+
+        /* Navegación automática */
+        .slider-nav-auto {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .auto-nav-btn {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        .auto-nav-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .auto-nav-btn.active {
+            background: var(--primary-color);
+            color: white;
         }
 
         .no-images-slider {
@@ -121,16 +155,19 @@
         }
 
         .category-link {
-            display: inline-block;
-            margin-top: 15px;
+            display: block;
+            text-align: center;
+            margin-top: 20px;
             color: var(--primary-color);
             text-decoration: none;
             font-weight: bold;
             transition: color 0.3s;
+            font-size: 1.1em;
         }
 
         .category-link:hover {
             color: var(--secondary-color);
+            text-decoration: underline;
         }
 
         @media (max-width: 768px) {
@@ -146,14 +183,19 @@
                 width: 250px;
             }
             
-            .slider-nav {
-                flex-direction: column;
-                align-items: center;
+            .slider-indicators {
+                flex-wrap: wrap;
             }
-            
-            .slider-nav button {
-                width: 200px;
-            }
+        }
+
+        /* Animaciones para transiciones suaves */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slider-item {
+            animation: fadeIn 0.5s ease;
         }
     </style>
 </head>
@@ -198,12 +240,12 @@
                     <div class="slider" id="portadas-slider">
                         <div class="loading">Cargando portadas...</div>
                     </div>
-                    <div class="slider-nav">
-                        <button onclick="scrollSlider('portadas-slider', -300)">❮ Anterior</button>
-                        <a href="portadas.html" class="category-link">Ver todas las portadas</a>
-                        <button onclick="scrollSlider('portadas-slider', 300)">Siguiente ❯</button>
+                    <div class="slider-indicators" id="portadas-indicators"></div>
+                    <div class="slider-nav-auto">
+                        <button class="auto-nav-btn" onclick="toggleAutoScroll('portadas')">⏸️ Pausar</button>
                     </div>
                 </div>
+                <a href="portadas.html" class="category-link">Ver todas las portadas →</a>
             </section>
 
             <!-- Carrusel Separadores -->
@@ -213,12 +255,12 @@
                     <div class="slider" id="separadores-slider">
                         <div class="loading">Cargando separadores...</div>
                     </div>
-                    <div class="slider-nav">
-                        <button onclick="scrollSlider('separadores-slider', -300)">❮ Anterior</button>
-                        <a href="separadores.html" class="category-link">Ver todos los separadores</a>
-                        <button onclick="scrollSlider('separadores-slider', 300)">Siguiente ❯</button>
+                    <div class="slider-indicators" id="separadores-indicators"></div>
+                    <div class="slider-nav-auto">
+                        <button class="auto-nav-btn" onclick="toggleAutoScroll('separadores')">⏸️ Pausar</button>
                     </div>
                 </div>
+                <a href="separadores.html" class="category-link">Ver todos los separadores →</a>
             </section>
 
             <!-- Carrusel Cubre Polvos -->
@@ -228,12 +270,12 @@
                     <div class="slider" id="cubrepolvos-slider">
                         <div class="loading">Cargando cubre polvos...</div>
                     </div>
-                    <div class="slider-nav">
-                        <button onclick="scrollSlider('cubrepolvos-slider', -300)">❮ Anterior</button>
-                        <a href="cubrepolvos.html" class="category-link">Ver todos los cubre polvos</a>
-                        <button onclick="scrollSlider('cubrepolvos-slider', 300)">Siguiente ❯</button>
+                    <div class="slider-indicators" id="cubrepolvos-indicators"></div>
+                    <div class="slider-nav-auto">
+                        <button class="auto-nav-btn" onclick="toggleAutoScroll('cubrepolvos')">⏸️ Pausar</button>
                     </div>
                 </div>
+                <a href="cubrepolvos.html" class="category-link">Ver todos los cubre polvos →</a>
             </section>
         </div>
     </main>
@@ -266,16 +308,17 @@
     <script src="firebase-config.js"></script>
 
     <script>
+        // Estado de los carruseles
+        const carouselState = {
+            portadas: { currentIndex: 0, autoScroll: true, intervalId: null },
+            separadores: { currentIndex: 0, autoScroll: true, intervalId: null },
+            cubrepolvos: { currentIndex: 0, autoScroll: true, intervalId: null }
+        };
+
         // Navegación móvil
         document.getElementById('mobile-menu').addEventListener('click', function() {
             document.querySelector('.nav-menu').classList.toggle('active');
         });
-
-        // Funciones del slider
-        function scrollSlider(sliderId, amount) {
-            const slider = document.getElementById(sliderId);
-            slider.scrollBy({ left: amount, behavior: 'smooth' });
-        }
 
         // Modal Admin
         function openAdminModal() {
@@ -296,15 +339,129 @@
             }
         }
 
-        // Cargar carruseles - VERSIÓN CORREGIDA
+        // Función para desplazamiento automático
+        function startAutoScroll(category) {
+            const state = carouselState[category];
+            const slider = document.getElementById(`${category}-slider`);
+            const indicators = document.getElementById(`${category}-indicators`);
+            
+            if (!slider || !indicators) return;
+
+            state.intervalId = setInterval(() => {
+                if (!state.autoScroll) return;
+                
+                const items = slider.querySelectorAll('.slider-item');
+                if (items.length === 0) return;
+
+                state.currentIndex = (state.currentIndex + 1) % items.length;
+                scrollToItem(category, state.currentIndex);
+            }, 4000); // Cambia cada 4 segundos
+        }
+
+        // Función para desplazarse a un ítem específico
+        function scrollToItem(category, index) {
+            const slider = document.getElementById(`${category}-slider`);
+            const indicators = document.getElementById(`${category}-indicators`);
+            const items = slider.querySelectorAll('.slider-item');
+            
+            if (items.length === 0) return;
+
+            // Asegurar que el índice esté en el rango
+            index = (index + items.length) % items.length;
+            carouselState[category].currentIndex = index;
+
+            // Desplazar al ítem
+            const item = items[index];
+            const scrollPosition = item.offsetLeft - slider.offsetLeft;
+            
+            slider.scrollTo({
+                left: scrollPosition,
+                behavior: 'smooth'
+            });
+
+            // Actualizar indicadores
+            updateIndicators(category, index);
+        }
+
+        // Función para actualizar los puntos indicadores
+        function updateIndicators(category, activeIndex) {
+            const indicators = document.getElementById(`${category}-indicators`);
+            const dots = indicators.querySelectorAll('.slider-dot');
+            
+            dots.forEach((dot, index) => {
+                if (index === activeIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Función para crear indicadores
+        function createIndicators(category, count) {
+            const indicators = document.getElementById(`${category}-indicators`);
+            indicators.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const dot = document.createElement('button');
+                dot.className = `slider-dot ${i === 0 ? 'active' : ''}`;
+                dot.addEventListener('click', () => {
+                    scrollToItem(category, i);
+                    // Pausar auto-scroll temporalmente al hacer clic manual
+                    pauseAutoScrollTemporarily(category);
+                });
+                indicators.appendChild(dot);
+            }
+        }
+
+        // Pausar auto-scroll temporalmente
+        function pauseAutoScrollTemporarily(category) {
+            const state = carouselState[category];
+            state.autoScroll = false;
+            
+            // Actualizar botón
+            const button = document.querySelector(`[onclick="toggleAutoScroll('${category}')"]`);
+            if (button) {
+                button.textContent = '▶️ Reanudar';
+                button.classList.remove('active');
+            }
+            
+            // Reanudar después de 10 segundos
+            setTimeout(() => {
+                if (!state.autoScroll) {
+                    state.autoScroll = true;
+                    if (button) {
+                        button.textContent = '⏸️ Pausar';
+                        button.classList.add('active');
+                    }
+                }
+            }, 10000);
+        }
+
+        // Alternar auto-scroll
+        function toggleAutoScroll(category) {
+            const state = carouselState[category];
+            const button = document.querySelector(`[onclick="toggleAutoScroll('${category}')"]`);
+            
+            state.autoScroll = !state.autoScroll;
+            
+            if (state.autoScroll) {
+                button.textContent = '⏸️ Pausar';
+                button.classList.add('active');
+            } else {
+                button.textContent = '▶️ Reanudar';
+                button.classList.remove('active');
+            }
+        }
+
+        // Cargar carruseles - VERSIÓN MEJORADA
         async function loadSliders() {
             try {
                 console.log("🚀 Cargando carruseles...");
 
-                // Cargar cada categoría por separado
-                await loadCategorySlider('portadas', 'portadas-slider');
-                await loadCategorySlider('separadores', 'separadores-slider');
-                await loadCategorySlider('cubrepolvos', 'cubrepolvos-slider');
+                await loadCategoryCarousel('portadas');
+                await loadCategoryCarousel('separadores');
+                await loadCategoryCarousel('cubrepolvos');
 
             } catch (error) {
                 console.error('❌ Error cargando carruseles:', error);
@@ -312,18 +469,17 @@
         }
 
         // Cargar carrusel por categoría
-        async function loadCategorySlider(category, sliderId) {
+        async function loadCategoryCarousel(category) {
             try {
                 console.log(`📂 Cargando ${category}...`);
                 
-                // Consulta optimizada con límite
                 const snapshot = await db.collection('imagenes')
                     .where('category', '==', category)
                     .orderBy('timestamp', 'desc')
-                    .limit(8) // Máximo 8 imágenes por carrusel
+                    .limit(10) // Máximo 10 imágenes por carrusel
                     .get();
 
-                const slider = document.getElementById(sliderId);
+                const slider = document.getElementById(`${category}-slider`);
                 
                 if (snapshot.empty) {
                     slider.innerHTML = `
@@ -339,8 +495,13 @@
                 }
 
                 slider.innerHTML = '';
+                const images = [];
+                
                 snapshot.forEach(doc => {
-                    const image = doc.data();
+                    images.push(doc.data());
+                });
+
+                images.forEach((image, index) => {
                     const slide = document.createElement('div');
                     slide.className = 'slider-item';
                     slide.innerHTML = `
@@ -362,16 +523,22 @@
                     slider.appendChild(slide);
                 });
 
-                console.log(`✅ ${category} cargados:`, snapshot.size);
+                // Crear indicadores
+                createIndicators(category, images.length);
+                
+                // Iniciar auto-scroll
+                startAutoScroll(category);
+
+                console.log(`✅ ${category} cargados:`, images.length);
 
             } catch (error) {
                 console.error(`❌ Error cargando ${category}:`, error);
-                const slider = document.getElementById(sliderId);
+                const slider = document.getElementById(`${category}-slider`);
                 slider.innerHTML = `
                     <div class="no-images-slider">
                         <h3>Error cargando ${category}</h3>
                         <p>${error.message}</p>
-                        <button onclick="loadCategorySlider('${category}', '${sliderId}')" style="margin-top: 10px;">
+                        <button onclick="loadCategoryCarousel('${category}')" style="margin-top: 10px;">
                             🔄 Reintentar
                         </button>
                     </div>
@@ -423,9 +590,8 @@
             console.log("🚀 Inicializando página de inicio...");
             
             if (!checkFirebaseConnection()) {
-                // Mostrar error en todos los sliders
-                ['portadas-slider', 'separadores-slider', 'cubrepolvos-slider'].forEach(sliderId => {
-                    document.getElementById(sliderId).innerHTML = `
+                ['portadas', 'separadores', 'cubrepolvos'].forEach(category => {
+                    document.getElementById(`${category}-slider`).innerHTML = `
                         <div class="no-images-slider">
                             <h3>❌ Error de conexión</h3>
                             <p>No se pudo conectar a la base de datos</p>
@@ -438,30 +604,21 @@
             // Cargar carruseles iniciales
             loadSliders();
             
-            // Escuchar cambios en tiempo real (opcional)
-            try {
-                // Escuchar cambios en todas las categorías
-                ['portadas', 'separadores', 'cubrepolvos'].forEach(category => {
-                    const unsubscribe = db.collection('imagenes')
-                        .where('category', '==', category)
-                        .orderBy('timestamp', 'desc')
-                        .limit(8)
-                        .onSnapshot(() => {
-                            console.log(`🔄 Actualización en ${category}`);
-                            loadCategorySlider(category, `${category}-slider`);
-                        }, error => {
-                            console.warn(`⚠️ Error en listener de ${category}:`, error);
-                        });
-                    
-                    // Limpiar listener cuando la página se cierre
-                    window.addEventListener('beforeunload', () => {
-                        unsubscribe();
+            // Pausar auto-scroll cuando el usuario interactúe
+            ['portadas', 'separadores', 'cubrepolvos'].forEach(category => {
+                const slider = document.getElementById(`${category}-slider`);
+                if (slider) {
+                    slider.addEventListener('mouseenter', () => {
+                        carouselState[category].autoScroll = false;
                     });
-                });
-                
-            } catch (error) {
-                console.warn('⚠️ No se pudo establecer listeners tiempo real:', error);
-            }
+                    
+                    slider.addEventListener('mouseleave', () => {
+                        if (document.querySelector(`[onclick="toggleAutoScroll('${category}')"]`).textContent === '⏸️ Pausar') {
+                            carouselState[category].autoScroll = true;
+                        }
+                    });
+                }
+            });
         });
 
         // Cerrar modal al hacer click fuera
@@ -479,7 +636,16 @@
             }
         });
 
-        // Animaciones CSS para notificaciones
+        // Limpiar intervals cuando la página se cierre
+        window.addEventListener('beforeunload', () => {
+            Object.values(carouselState).forEach(state => {
+                if (state.intervalId) {
+                    clearInterval(state.intervalId);
+                }
+            });
+        });
+
+        // Animaciones CSS
         const style = document.createElement('style');
         style.textContent = `
             @keyframes slideIn {
