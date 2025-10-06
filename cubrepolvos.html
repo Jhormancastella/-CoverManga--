@@ -1,1 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoverManga - Cubre Polvos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png" type="image/png">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png" alt="CoverManga" class="logo-img">
+                <span>CoverManga</span>
+            </div>
+            
+            <div class="menu-toggle" id="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="portadas.html">Portadas</a></li>
+                <li><a href="separadores.html">Separadores</a></li>
+                <li><a href="cubrepolvos.html" class="active">Cubre Polvos</a></li>
+                <li><button class="admin-btn" onclick="openAdminModal()">AD</button></li>
+            </ul>
+        </div>
+    </header>
 
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1 class="section-title">🛡️ Galería de Cubre Polvos</h1>
+            <p style="text-align: center; margin-bottom: 30px; color: var(--text-color);">
+                Protege tus mangas con estilo con nuestros cubre polvos
+            </p>
+            
+            <div class="gallery-grid" id="cubrepolvos-gallery">
+                <div class="loading">Cargando cubre polvos...</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Derechos reservados a Jhorman Jesús Castellanos Morales</p>
+            <p class="acknowledgments">Agradecimientos especiales a nuestra comunidad de amantes del manga</p>
+        </div>
+    </footer>
+
+    <!-- Modal Admin -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAdminModal()">&times;</span>
+            <div id="loginForm" class="login-form">
+                <h2>🔐 Acceso Administración</h2>
+                <div class="form-group">
+                    <input type="password" id="adminPassword" placeholder="Contraseña de administrador">
+                </div>
+                <button class="submit-btn" onclick="loginAdmin()">Ingresar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script>
+        // Navegación móvil
+        document.getElementById('mobile-menu').addEventListener('click', function() {
+            document.querySelector('.nav-menu').classList.toggle('active');
+        });
+
+        // Modal Admin
+        function openAdminModal() {
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                window.location.href = 'admin.html';
+            } else {
+                alert('❌ Contraseña incorrecta');
+            }
+        }
+
+        // Cargar galería de cubre polvos
+        async function loadCubrePolvosGallery() {
+            try {
+                const snapshot = await db.collection('imagenes')
+                    .where('category', '==', 'cubrepolvos')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                const gallery = document.getElementById('cubrepolvos-gallery');
+                
+                if (snapshot.empty) {
+                    gallery.innerHTML = '<div class="loading">No hay cubre polvos disponibles</div>';
+                    return;
+                }
+
+                gallery.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const image = doc.data();
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item';
+                    galleryItem.innerHTML = `
+                        <img src="${image.url}" alt="${image.title}" 
+                             onerror="this.src='https://via.placeholder.com/300x200?text=Imagen+No+Disponible'">
+                        <div class="info">
+                            <h3>${image.title}</h3>
+                        </div>
+                    `;
+                    gallery.appendChild(galleryItem);
+                });
+
+            } catch (error) {
+                console.error('Error cargando cubre polvos:', error);
+                document.getElementById('cubrepolvos-gallery').innerHTML = '<div class="loading">Error cargando cubre polvos</div>';
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCubrePolvosGallery();
+            
+            // Escuchar cambios en tiempo real
+            db.collection('imagenes').where('category', '==', 'cubrepolvos').onSnapshot(() => {
+                loadCubrePolvosGallery();
+            });
+        });
+
+        // Cerrar modal al hacer click fuera
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('adminModal');
+            if (event.target === modal) {
+                closeAdminModal();
+            }
+        });
+    </script>
+</body>
+</html>
