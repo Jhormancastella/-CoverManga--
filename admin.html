@@ -132,6 +132,36 @@
             padding-bottom: 20px;
             border-bottom: 2px solid #eee;
         }
+
+        .upload-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .upload-option-btn {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+
+        .upload-option-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .upload-section {
+            display: none;
+        }
+
+        .upload-section.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -170,42 +200,117 @@
                 <!-- Formulario para agregar imágenes -->
                 <div class="form-section">
                     <h2>➕ Agregar Nueva Imagen</h2>
-                    <form id="addImageForm">
-                        <div class="form-group">
-                            <label for="imageUrl">URL de la Imagen</label>
-                            <input type="url" id="imageUrl" required 
-                                   placeholder="https://ejemplo.com/imagen.jpg">
-                            <div class="url-help">
-                                💡 La URL debe ser directa a una imagen (jpg, png, gif, webp)
+                    
+                    <!-- Selector de método de subida -->
+                    <div class="upload-options">
+                        <button type="button" class="upload-option-btn active" onclick="showUploadSection('url')">
+                            🌐 Usar URL Externa
+                        </button>
+                        <button type="button" class="upload-option-btn" onclick="showUploadSection('storage')">
+                            📤 Subir Archivo
+                        </button>
+                    </div>
+
+                    <!-- Sección URL Externa -->
+                    <div id="urlSection" class="upload-section active">
+                        <form id="addImageForm">
+                            <div class="form-group">
+                                <label for="imageUrl">URL de la Imagen</label>
+                                <input type="url" id="imageUrl" required 
+                                       placeholder="https://ejemplo.com/imagen.jpg">
+                                <div class="url-help">
+                                    💡 La URL debe ser directa a una imagen (jpg, png, gif, webp)
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="imageTitle">Título</label>
-                            <input type="text" id="imageTitle" required 
-                                   placeholder="Ej: Naruto Tomo 1 - Portada">
-                        </div>
-                        <div class="form-group">
-                            <label for="imageCategory">Categoría</label>
-                            <select id="imageCategory" required>
-                                <option value="">Seleccionar categoría</option>
-                                <option value="portadas">Portadas</option>
-                                <option value="separadores">Separadores</option>
-                                <option value="cubrepolvos">Cubre Polvos</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="featuredImage"> 
-                                Destacar en página principal (carrusel)
-                            </label>
-                        </div>
-                        <button type="submit" class="submit-btn">➕ Agregar Imagen</button>
-                    </form>
+                            <div class="form-group">
+                                <label for="imageTitle">Título</label>
+                                <input type="text" id="imageTitle" required 
+                                       placeholder="Ej: Naruto Tomo 1 - Portada">
+                            </div>
+                            <div class="form-group">
+                                <label for="imageCategory">Categoría</label>
+                                <select id="imageCategory" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    <option value="portadas">Portadas</option>
+                                    <option value="separadores">Separadores</option>
+                                    <option value="cubrepolvos">Cubre Polvos</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="imageSeries">Serie (Opcional)</label>
+                                <input type="text" id="imageSeries" 
+                                       placeholder="Ej: Naruto, One Piece, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="imageVolume">Volumen (Opcional)</label>
+                                <input type="number" id="imageVolume" 
+                                       placeholder="Ej: 1, 2, 3...">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="featuredImage"> 
+                                    Destacar en página principal (carrusel)
+                                </label>
+                            </div>
+                            <button type="submit" class="submit-btn">➕ Agregar Imagen</button>
+                        </form>
+                    </div>
+
+                    <!-- Sección Subir Archivo -->
+                    <div id="storageSection" class="upload-section">
+                        <form id="uploadFileForm">
+                            <div class="form-group">
+                                <label for="imageFile">Seleccionar Archivo</label>
+                                <input type="file" id="imageFile" accept="image/*" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fileTitle">Título</label>
+                                <input type="text" id="fileTitle" required 
+                                       placeholder="Ej: Naruto Tomo 1 - Portada">
+                            </div>
+                            <div class="form-group">
+                                <label for="fileCategory">Categoría</label>
+                                <select id="fileCategory" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    <option value="portadas">Portadas</option>
+                                    <option value="separadores">Separadores</option>
+                                    <option value="cubrepolvos">Cubre Polvos</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fileSeries">Serie (Opcional)</label>
+                                <input type="text" id="fileSeries" 
+                                       placeholder="Ej: Naruto, One Piece, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="fileVolume">Volumen (Opcional)</label>
+                                <input type="number" id="fileVolume" 
+                                       placeholder="Ej: 1, 2, 3...">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="fileFeatured"> 
+                                    Destacar en página principal
+                                </label>
+                            </div>
+                            <button type="submit" class="submit-btn">📤 Subir Archivo</button>
+                        </form>
+                        <div id="uploadStatus" style="margin-top: 10px;"></div>
+                    </div>
                 </div>
 
                 <!-- Gestión de imágenes existentes -->
                 <div class="image-management">
                     <h2>🗂️ Gestión de Imágenes Existentes</h2>
+                    <div class="search-bar" style="margin-bottom: 20px;">
+                        <input type="text" id="searchImages" placeholder="Buscar imágenes...">
+                        <select id="filterCategory">
+                            <option value="">Todas las categorías</option>
+                            <option value="portadas">Portadas</option>
+                            <option value="separadores">Separadores</option>
+                            <option value="cubrepolvos">Cubre Polvos</option>
+                        </select>
+                    </div>
                     <div id="imagesList">
                         <div class="loading">Cargando imágenes...</div>
                     </div>
@@ -225,6 +330,7 @@
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
     <script src="firebase-config.js"></script>
 
     <script>
@@ -247,17 +353,32 @@
             document.querySelector('.nav-menu').classList.toggle('active');
         });
 
-        // Agregar imagen
+        // Cambiar entre métodos de subida
+        function showUploadSection(section) {
+            document.querySelectorAll('.upload-option-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.upload-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(section + 'Section').classList.add('active');
+        }
+
+        // Agregar imagen con URL externa
         document.getElementById('addImageForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const url = document.getElementById('imageUrl').value;
             const title = document.getElementById('imageTitle').value;
             const category = document.getElementById('imageCategory').value;
+            const series = document.getElementById('imageSeries').value;
+            const volume = document.getElementById('imageVolume').value;
             const featured = document.getElementById('featuredImage').checked;
 
             // Validar URL
-            if (!url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+            if (!url.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i)) {
                 alert('⚠️ La URL debe ser una imagen (jpg, png, gif, webp)');
                 return;
             }
@@ -267,8 +388,11 @@
                     url: url,
                     title: title,
                     category: category,
+                    series: series || '',
+                    volume: volume || '',
                     featured: featured,
-                    timestamp: new Date()
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    type: 'url' // Para identificar el tipo de subida
                 });
 
                 alert('✅ Imagen agregada correctamente');
@@ -276,21 +400,86 @@
                 loadStats();
                 loadImagesManagement();
             } catch (error) {
+                console.error('Error:', error);
                 alert('❌ Error al agregar imagen: ' + error.message);
             }
         });
 
+        // Subir archivo a Firebase Storage
+        document.getElementById('uploadFileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const file = document.getElementById('imageFile').files[0];
+            const title = document.getElementById('fileTitle').value;
+            const category = document.getElementById('fileCategory').value;
+            const series = document.getElementById('fileSeries').value;
+            const volume = document.getElementById('fileVolume').value;
+            const featured = document.getElementById('fileFeatured').checked;
+
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.innerHTML = '⏳ Subiendo archivo...';
+            statusDiv.style.color = 'blue';
+
+            try {
+                // Subir imagen a Firebase Storage
+                const storageRef = firebase.storage().ref();
+                const fileRef = storageRef.child(`${category}/${Date.now()}_${file.name}`);
+                const uploadTask = await fileRef.put(file);
+                
+                // Obtener URL de la imagen
+                const imageUrl = await uploadTask.ref.getDownloadURL();
+
+                // Guardar metadata en Firestore
+                await db.collection('imagenes').add({
+                    url: imageUrl,
+                    title: title,
+                    category: category,
+                    series: series || '',
+                    volume: volume || '',
+                    featured: featured,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    fileName: file.name,
+                    type: 'storage' // Para identificar el tipo de subida
+                });
+
+                statusDiv.innerHTML = '✅ Archivo subido correctamente!';
+                statusDiv.style.color = 'green';
+                
+                // Limpiar formulario
+                document.getElementById('uploadFileForm').reset();
+                
+                // Recargar lista de archivos
+                loadStats();
+                loadImagesManagement();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = '❌ Error al subir archivo: ' + error.message;
+                statusDiv.style.color = 'red';
+            }
+        });
+
         // Eliminar imagen
-        async function deleteImage(imageId) {
-            if (confirm('¿Estás seguro de eliminar esta imagen?')) {
-                try {
-                    await db.collection('imagenes').doc(imageId).delete();
-                    alert('✅ Imagen eliminada correctamente');
-                    loadStats();
-                    loadImagesManagement();
-                } catch (error) {
-                    alert('❌ Error al eliminar imagen: ' + error.message);
+        async function deleteImage(imageId, imageUrl, type) {
+            if (!confirm('¿Estás seguro de eliminar esta imagen?')) {
+                return;
+            }
+
+            try {
+                // Si es de storage, eliminar también del Storage
+                if (type === 'storage') {
+                    const storageRef = firebase.storage().refFromURL(imageUrl);
+                    await storageRef.delete();
                 }
+
+                // Eliminar de Firestore
+                await db.collection('imagenes').doc(imageId).delete();
+                alert('✅ Imagen eliminada correctamente');
+                loadStats();
+                loadImagesManagement();
+            } catch (error) {
+                console.error('Error eliminando imagen:', error);
+                alert('❌ Error al eliminar imagen: ' + error.message);
             }
         }
 
@@ -378,13 +567,18 @@
                             <div class="image-info">
                                 <h4>${image.title} ${image.featured ? '<span class="featured-badge">Destacada</span>' : ''}</h4>
                                 <p><strong>Categoría:</strong> ${image.category} | 
-                                   <strong>Fecha:</strong> ${image.timestamp.toDate().toLocaleDateString()}</p>
+                                   <strong>Serie:</strong> ${image.series || 'N/A'} | 
+                                   <strong>Volumen:</strong> ${image.volume || 'N/A'}</p>
+                                <p><strong>Fecha:</strong> ${image.timestamp?.toDate().toLocaleDateString() || 'N/A'} | 
+                                   <strong>Tipo:</strong> ${image.type || 'url'}</p>
                             </div>
                             <div class="action-buttons">
                                 <button class="toggle-featured" onclick="toggleFeatured('${doc.id}', ${image.featured})">
                                     ${image.featured ? '❌ Quitar Destacado' : '⭐ Destacar'}
                                 </button>
-                                <button class="delete-btn" onclick="deleteImage('${doc.id}')">🗑️ Eliminar</button>
+                                <button class="delete-btn" onclick="deleteImage('${doc.id}', '${image.url}', '${image.type}')">
+                                    🗑️ Eliminar
+                                </button>
                             </div>
                         </div>
                     `;
@@ -395,6 +589,32 @@
                 console.error('Error cargando gestión de imágenes:', error);
                 document.getElementById('imagesList').innerHTML = '<div class="loading">Error cargando imágenes</div>';
             }
+        }
+
+        // Búsqueda y filtrado
+        document.getElementById('searchImages').addEventListener('input', function() {
+            filterImages();
+        });
+
+        document.getElementById('filterCategory').addEventListener('change', function() {
+            filterImages();
+        });
+
+        function filterImages() {
+            const searchTerm = document.getElementById('searchImages').value.toLowerCase();
+            const categoryFilter = document.getElementById('filterCategory').value;
+            
+            const imageItems = document.querySelectorAll('.image-item');
+            
+            imageItems.forEach(item => {
+                const title = item.querySelector('h4').textContent.toLowerCase();
+                const category = item.querySelector('p').textContent;
+                
+                const matchesSearch = title.includes(searchTerm);
+                const matchesCategory = !categoryFilter || category.includes(categoryFilter);
+                
+                item.style.display = (matchesSearch && matchesCategory) ? 'flex' : 'none';
+            });
         }
 
         // Inicializar
