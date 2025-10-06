@@ -1,1 +1,215 @@
-<h1>hola lector de manga</h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoverManga - Inicio</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png" type="image/png">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png" alt="CoverManga" class="logo-img">
+                <span>CoverManga</span>
+            </div>
+            
+            <div class="menu-toggle" id="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="index.html" class="active">Inicio</a></li>
+                <li><a href="portadas.html">Portadas</a></li>
+                <li><a href="separadores.html">Separadores</a></li>
+                <li><a href="cubrepolvos.html">Cubre Polvos</a></li>
+                <li><button class="admin-btn" onclick="openAdminModal()">AD</button></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <h1>Bienvenido a CoverManga</h1>
+                <p>Tu galería definitiva de portadas, separadores y cubre polvos de manga</p>
+            </section>
+
+            <!-- Carrusel Portadas -->
+            <section class="slider-section">
+                <h2 class="section-title">🎴 Portadas Destacadas</h2>
+                <div class="slider-container">
+                    <div class="slider" id="portadas-slider">
+                        <div class="loading">Cargando portadas...</div>
+                    </div>
+                    <div class="slider-nav">
+                        <button onclick="scrollSlider('portadas-slider', -300)">❮ Anterior</button>
+                        <button onclick="scrollSlider('portadas-slider', 300)">Siguiente ❯</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Carrusel Separadores -->
+            <section class="slider-section">
+                <h2 class="section-title">📑 Separadores Populares</h2>
+                <div class="slider-container">
+                    <div class="slider" id="separadores-slider">
+                        <div class="loading">Cargando separadores...</div>
+                    </div>
+                    <div class="slider-nav">
+                        <button onclick="scrollSlider('separadores-slider', -300)">❮ Anterior</button>
+                        <button onclick="scrollSlider('separadores-slider', 300)">Siguiente ❯</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Carrusel Cubre Polvos -->
+            <section class="slider-section">
+                <h2 class="section-title">🛡️ Cubre Polvos Destacados</h2>
+                <div class="slider-container">
+                    <div class="slider" id="cubrepolvos-slider">
+                        <div class="loading">Cargando cubre polvos...</div>
+                    </div>
+                    <div class="slider-nav">
+                        <button onclick="scrollSlider('cubrepolvos-slider', -300)">❮ Anterior</button>
+                        <button onclick="scrollSlider('cubrepolvos-slider', 300)">Siguiente ❯</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Derechos reservados a Jhorman Jesús Castellanos Morales</p>
+            <p class="acknowledgments">Agradecimientos especiales a nuestra comunidad de amantes del manga</p>
+        </div>
+    </footer>
+
+    <!-- Modal Admin -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAdminModal()">&times;</span>
+            <div id="loginForm" class="login-form">
+                <h2>🔐 Acceso Administración</h2>
+                <div class="form-group">
+                    <input type="password" id="adminPassword" placeholder="Contraseña de administrador">
+                </div>
+                <button class="submit-btn" onclick="loginAdmin()">Ingresar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script>
+        // Navegación móvil
+        document.getElementById('mobile-menu').addEventListener('click', function() {
+            document.querySelector('.nav-menu').classList.toggle('active');
+        });
+
+        // Funciones del slider
+        function scrollSlider(sliderId, amount) {
+            const slider = document.getElementById(sliderId);
+            slider.scrollBy({ left: amount, behavior: 'smooth' });
+        }
+
+        // Modal Admin
+        function openAdminModal() {
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                window.location.href = 'admin.html';
+            } else {
+                alert('❌ Contraseña incorrecta');
+            }
+        }
+
+        // Cargar carruseles
+        async function loadSliders() {
+            try {
+                const snapshot = await db.collection('imagenes')
+                    .where('featured', '==', true)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                const imagesByCategory = {
+                    'portadas': [],
+                    'separadores': [],
+                    'cubrepolvos': []
+                };
+
+                snapshot.forEach(doc => {
+                    const image = doc.data();
+                    if (imagesByCategory[image.category]) {
+                        imagesByCategory[image.category].push(image);
+                    }
+                });
+
+                // Cargar cada carrusel
+                for (const [category, images] of Object.entries(imagesByCategory)) {
+                    const slider = document.getElementById(`${category}-slider`);
+                    slider.innerHTML = '';
+
+                    if (images.length === 0) {
+                        slider.innerHTML = '<div class="loading">No hay imágenes destacadas</div>';
+                        continue;
+                    }
+
+                    images.forEach(image => {
+                        const slide = document.createElement('div');
+                        slide.className = 'slider-item';
+                        slide.innerHTML = `
+                            <img src="${image.url}" alt="${image.title}" 
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=Imagen+No+Disponible'">
+                            <div class="info">
+                                <h3>${image.title}</h3>
+                            </div>
+                        `;
+                        slider.appendChild(slide);
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error cargando carruseles:', error);
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSliders();
+            
+            // Escuchar cambios en tiempo real
+            db.collection('imagenes').where('featured', '==', true).onSnapshot(() => {
+                loadSliders();
+            });
+        });
+
+        // Cerrar modal al hacer click fuera
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('adminModal');
+            if (event.target === modal) {
+                closeAdminModal();
+            }
+        });
+    </script>
+</body>
+</html>
