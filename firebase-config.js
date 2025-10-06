@@ -1,4 +1,4 @@
-// js/firebase-config.js
+
 const firebaseConfig = {
     apiKey: "AIzaSyCqsB9Y1CKKjnawNUfVVEnmm6u3oivpyVM",
     authDomain: "galer-anime.firebaseapp.com",
