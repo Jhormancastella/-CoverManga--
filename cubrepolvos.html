@@ -41,7 +41,10 @@
             </p>
             
             <div class="gallery-grid" id="cubrepolvos-gallery">
-                <div class="loading">Cargando cubre polvos...</div>
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Cargando cubre polvos...</p>
+                </div>
             </div>
         </div>
     </main>
@@ -100,17 +103,25 @@
 
         // Cargar galería de cubre polvos - VERSIÓN OPTIMIZADA CON ÍNDICE
         async function loadCubrePolvosGallery() {
+            const gallery = document.getElementById('cubrepolvos-gallery');
+            
             try {
                 console.log("🚀 Cargando cubre polvos con índice...");
                 
+                // Mostrar spinner mientras carga
+                gallery.innerHTML = `
+                    <div class="loading-container">
+                        <div class="loading-spinner"></div>
+                        <p class="loading-text">Cargando cubre polvos...</p>
+                    </div>
+                `;
+
                 // CONSULTA ÓPTIMA CON ÍNDICE
                 const snapshot = await db.collection('imagenes')
                     .where('category', '==', 'cubrepolvos')
                     .orderBy('timestamp', 'desc')
                     .get();
 
-                const gallery = document.getElementById('cubrepolvos-gallery');
-                
                 console.log("✅ Cubre polvos cargados:", snapshot.size);
                 
                 if (snapshot.empty) {
@@ -130,12 +141,14 @@
                 snapshot.forEach(doc => {
                     const image = doc.data();
                     const galleryItem = document.createElement('div');
-                    galleryItem.className = 'gallery-item';
+                    galleryItem.className = 'gallery-item cubrepolvo-item';
                     galleryItem.innerHTML = `
                         <div class="image-container">
                             <img src="${image.url}" alt="${image.title}" 
                                  loading="lazy"
-                                 onerror="this.src='https://via.placeholder.com/300x400/ecf0f1/7f8c8d?text=Cubre+Polvo'">
+                                 onload="this.style.opacity='1'"
+                                 onerror="this.src='https://via.placeholder.com/300x400/ecf0f1/7f8c8d?text=Cubre+Polvo'; this.style.opacity='1'"
+                                 style="opacity: 0; transition: opacity 0.3s ease">
                             <div class="image-overlay">
                                 <h3>${image.title}</h3>
                                 ${image.series ? `<p>📚 ${image.series}</p>` : ''}
@@ -172,7 +185,7 @@
                     errorMessage += ': ' + error.message;
                 }
                 
-                document.getElementById('cubrepolvos-gallery').innerHTML = `
+                gallery.innerHTML = `
                     <div class="error-message">
                         <h3>❌ Error</h3>
                         <p>${errorMessage}</p>
@@ -302,6 +315,39 @@
     </script>
 
     <style>
+        /* Spinner de carga */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            color: var(--text-color);
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        /* Animación del spinner */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .no-images, .error-message {
             text-align: center;
             padding: 40px;
@@ -409,6 +455,16 @@
 
         /* Mejoras responsive para cubre polvos */
         @media (max-width: 768px) {
+            .loading-container {
+                padding: 40px 20px;
+            }
+            
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border-width: 4px;
+            }
+            
             .image-overlay {
                 transform: translateY(0);
                 position: relative;
