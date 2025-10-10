@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoverManga - Cubre Polvos</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png" type="image/png">
+    <link rel="icon" href="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png " type="image/png">
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <div class="nav-container">
             <div class="logo">
-                <img src="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png" alt="CoverManga" class="logo-img">
+                <img src="https://images.emojiterra.com/microsoft/fluent-emoji/15.1/512px/1f3b4_color.png " alt="CoverManga" class="logo-img">
                 <span>CoverManga</span>
             </div>
             
@@ -72,8 +72,8 @@
     </div>
 
     <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js "></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js "></script>
     <script src="firebase-config.js"></script>
 
     <script>
@@ -453,7 +453,7 @@
             }
         }
 
-        /* Mejoras responsive para cubre polvos */
+        /* ✅ MEJORA: Responsive corregido para móviles */
         @media (max-width: 768px) {
             .loading-container {
                 padding: 40px 20px;
@@ -465,12 +465,21 @@
                 border-width: 4px;
             }
             
+            /* 🔧 Corrección clave: mantener posición absoluta y siempre visible */
             .image-overlay {
-                transform: translateY(0);
-                position: relative;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                transform: translateY(0); /* Siempre visible en móvil */
                 background: var(--card-bg);
                 color: var(--text-color);
                 padding: 15px;
+            }
+
+            /* Asegurar contenedor relativo (aunque ya está, por si acaso) */
+            .image-container {
+                position: relative;
             }
             
             .image-actions {
@@ -482,13 +491,14 @@
             }
             
             .gallery-item img {
-                height: 250px; /* Ajuste para móviles */
+                height: 250px;
+                object-fit: cover;
             }
         }
 
         /* Estilo específico para cubre polvos */
         .gallery-item.cubrepolvo-item {
-            aspect-ratio: 3/4; /* Proporción común para protectores */
+            aspect-ratio: 3/4;
         }
     </style>
 </body>
